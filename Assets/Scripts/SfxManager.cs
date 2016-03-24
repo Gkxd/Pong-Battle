@@ -29,9 +29,12 @@ public class SfxManager : MonoBehaviour {
             Instantiate(instance.ballHitPlayer);
         }
     }
-    public static void PlaySfxBallHitWall() {
+    public static void PlaySfxBallHitWall(float volume = 1) {
         if (instance) {
-            Instantiate(instance.ballHitWall);
+            GameObject sfx = (GameObject)Instantiate(instance.ballHitWall);
+            if (volume < 1) {
+                sfx.GetComponent<AudioSource>().volume = volume;
+            }
         }
     }
 

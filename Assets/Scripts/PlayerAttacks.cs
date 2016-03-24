@@ -1,10 +1,17 @@
 ﻿using UnityEngine;
 using System.Collections;
 
+using UsefulThings;
+
 public class PlayerAttacks : MonoBehaviour {
 
     public int playerNumber;
     public Color color;
+    public Color darkColor;
+    public Color brightColor;
+
+    public TimeKeeper pinkGradientTime;
+    public TimeKeeper blueGradientTime;
 
     private float cooldown;
     private float specialCooldown;
@@ -57,7 +64,7 @@ public class PlayerAttacks : MonoBehaviour {
         }
 
         if (playerNumber == 0) {
-            if (Input.GetAxis("Player1_Horizontal") < 0) {
+            if (Input.GetAxis("Player1_Defend") > 0) {
                 if (Input.GetAxis("Player1_Vertical") > 0) {
                     targetSize = 1;
                     targetOffset = 3;
@@ -85,7 +92,7 @@ public class PlayerAttacks : MonoBehaviour {
 
                     bullet.velocity = initialVelocity;
                     bullet.movement = new ApproachVelocity(targetVelocity);
-                    bullet.color = color;
+                    setBulletColor(bullet);
 
                     if (Input.GetAxis("Player1_Vertical") != 0) {
                         cooldown += 0.1f;
@@ -99,6 +106,10 @@ public class PlayerAttacks : MonoBehaviour {
             if (Input.GetAxis("Player1_Special") > 0 && specialCooldown == 0) {
                 if (GameState.Player1Mp == 100) {
                     SfxManager.PlaySfxPinkUltimate();
+                    VolumeDecreaseUltimate.LastUltTime = Time.time;
+                    DarkenBackgroundUltimate.LastUltTime = Time.time;
+                    pinkGradientTime.setTimeTo(-8);
+
                     StartCoroutine(player1Ultimate());
 
                     GameState.Player1Mp -= 100;
@@ -114,7 +125,7 @@ public class PlayerAttacks : MonoBehaviour {
             }
         }
         else {
-            if (Input.GetAxis("Player2_Horizontal") > 0) {
+            if (Input.GetAxis("Player2_Defend") > 0) {
                 if (Input.GetAxis("Player2_Vertical") > 0) {
                     targetSize = 0.75f;
                     targetOffset = 2.5f;
@@ -141,7 +152,7 @@ public class PlayerAttacks : MonoBehaviour {
                             angle = ((13 + 2 * Input.GetAxis("Player2_Vertical")) * (j + 0.5f) - 13 * i / 2) * Mathf.Deg2Rad;
 
                             PlayerBullet bullet = GameState.SpawnPlayerBullet(transform.position, playerNumber);
-                            bullet.color = color;
+                            setBulletColor(bullet);
 
                             bullet.velocity = new Vector3(-Mathf.Cos(angle), Mathf.Sin(angle), 0) * (speed - i * 0.5f);
                         }
@@ -155,6 +166,9 @@ public class PlayerAttacks : MonoBehaviour {
 
                 if (GameState.Player2Mp == 100) {
                     SfxManager.PlaySfxBlueUltimate();
+                    VolumeDecreaseUltimate.LastUltTime = Time.time;
+                    DarkenBackgroundUltimate.LastUltTime = Time.time;
+                    blueGradientTime.setTimeTo(-8);
 
                     StartCoroutine(player2Ultimate());
 
@@ -172,52 +186,81 @@ public class PlayerAttacks : MonoBehaviour {
         }
     }
 
+    private void setBulletColor(PlayerBullet bullet) {
+        bullet.trailColor = color;
+        bullet.darkColor = darkColor;
+        bullet.brightColor = brightColor;
+    }
+
     private IEnumerator player1Special() {
         for (int i = 0; i < 50; i++) {
             PlayerBullet bullet = GameState.SpawnPlayerBullet(new Vector3(-9, Random.Range(-5f, 4f), 0), playerNumber);
             bullet.velocity = new Vector3(Random.Range(5, 5.5f), Random.Range(-0.5f, 0.5f), 0);
-            bullet.color = color;
+            setBulletColor(bullet);
 
             yield return new WaitForSeconds(0.07f);
         }
     }
 
     private IEnumerator player1Ultimate() {
-        StartCoroutine(bulletStorm(100, 8));
+        StartCoroutine(bulletStorm(200, 8, GameState.Player2.transform.position.y));
         yield return new WaitForSeconds(2);
-        StartCoroutine(bulletStorm(100, 6));
+        StartCoroutine(bulletStorm(200, 6, GameState.Player2.transform.position.y));
         yield return new WaitForSeconds(2);
-        StartCoroutine(bulletStorm(100, 4));
+        StartCoroutine(bulletStorm(200, 4, GameState.Player2.transform.position.y));
         yield return new WaitForSeconds(1.6f);
-        StartCoroutine(bulletStorm(200, 2.4f));
+        StartCoroutine(bulletStorm(200, 2.4f, GameState.Player2.transform.position.y, large: true));
     }
 
-    private IEnumerator bulletStorm(int amount, float totalTime) {
+    private IEnumerator bulletStorm(int amount, float totalTime, float y,  bool large = false) {
         for (int i = 0; i < amount; i++) {
-            Vector3 position = new Vector3(-9, Random.Range(-5, 5), 0);
-            PlayerBullet bullet = GameState.SpawnPlayerBullet(position, playerNumber);
 
-            Vector3 offset = new Vector3(Random.Range(-2, 2), Random.Range(-2, 2), 0);
-            Vector3 velocity = (GameState.Player2.transform.position - position + offset).normalized;
+            if (large) {
+                for (int j = 0; j < 2; j++) {
+                    Vector3 position = new Vector3(-9, y + Random.Range(-2.5f, 2.5f), 0);
+                    PlayerBullet bullet = GameState.SpawnPlayerBullet(position, playerNumber);
+                    bullet.velocity = new Vector3(Random.Range(15, 17f), Random.Range(-1.5f, 1.5f), 0);
+                    setBulletColor(bullet);
+                    bullet.size = 2;
+                }
+            }
+            else {
+                Vector3 position = new Vector3(-9, y + Random.Range(-1.5f, 1.5f), 0);
+                PlayerBullet bullet = GameState.SpawnPlayerBullet(position, playerNumber);
+                bullet.velocity = new Vector3(Random.Range(12, 17f), Random.Range(-0.5f, 0.5f), 0);
+                setBulletColor(bullet);
+            }
 
-            bullet.velocity = velocity * Random.Range(4, 10);
-            bullet.color = color;
-            
             yield return new WaitForSeconds(totalTime / amount);
         }
     }
 
 
-    private IEnumerator player2Special(float y) {
+    private IEnumerator player2Special(float y, bool large = true) {
         for (int i = 0; i < 20; i++) {
 
-            PlayerBullet bullet = GameState.SpawnPlayerBullet(new Vector3(9, y - 0.1f * i, 0), playerNumber);
-            bullet.movement = new SinewaveMovement(1, Vector3.left * (5 + 0.1f * i), Vector3.up * 5);
-            bullet.color = color;
+            if (large) {
+                PlayerBullet bullet = GameState.SpawnPlayerBullet(new Vector3(9, y - 0.1f * i, 0), playerNumber);
+                bullet.movement = new SinewaveMovement(1, Vector3.left * (5 + 0.1f * i), Vector3.up * 10);
+                setBulletColor(bullet);
+                bullet.size = 2;
 
-            bullet = GameState.SpawnPlayerBullet(new Vector3(9, y + 0.1f * i, 0), playerNumber);
-            bullet.movement = new SinewaveMovement(1, Vector3.left * (5 + 0.1f * i), Vector3.down * 5);
-            bullet.color = color;
+
+                bullet = GameState.SpawnPlayerBullet(new Vector3(9, y + 0.1f * i, 0), playerNumber);
+                bullet.movement = new SinewaveMovement(1, Vector3.left * (5 + 0.1f * i), Vector3.down * 10);
+                setBulletColor(bullet);
+                bullet.size = 2;
+            }
+            else {
+                PlayerBullet bullet = GameState.SpawnPlayerBullet(new Vector3(9, y - 0.1f * i, 0), playerNumber);
+                bullet.movement = new SinewaveMovement(1, Vector3.left * (5 + 0.1f * i), Vector3.up * 5);
+                setBulletColor(bullet);
+
+
+                bullet = GameState.SpawnPlayerBullet(new Vector3(9, y + 0.1f * i, 0), playerNumber);
+                bullet.movement = new SinewaveMovement(1, Vector3.left * (5 + 0.1f * i), Vector3.down * 5);
+                setBulletColor(bullet);
+            }
 
             yield return new WaitForSeconds(0.2f);
         }
@@ -225,7 +268,7 @@ public class PlayerAttacks : MonoBehaviour {
 
     private IEnumerator player2Ultimate() {
         for (int i = 0; i < 32; i++) {
-            StartCoroutine(player2Special(GameState.Player1.transform.position.y));
+            StartCoroutine(player2Special(GameState.Player1.transform.position.y, large: false));
             yield return new WaitForSeconds(0.25f);
         }
     }

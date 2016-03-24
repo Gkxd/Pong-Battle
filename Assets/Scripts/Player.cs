@@ -16,17 +16,24 @@ public class Player : MonoBehaviour {
 
     void Start() {
         playerMaterial = transform.Find("Visual").GetComponent<Renderer>().material;
+    }
+
+    void OnEnable() {
         position = transform.localPosition;
     }
 
     void Update() {
         if (playerNumber == 0) {
-            float scale = Input.GetAxis("Player1_Horizontal") < 0 ? 0.2f : 1;
-            position.y += Input.GetAxis("Player1_Vertical") * playerSpeed * Time.deltaTime * scale;
+            if (Input.GetAxis("Player1_Defend") <= 0) {
+                float scale = Input.GetAxis("Player1_Shot") > 0 ? 0.5f : 1;
+                position.y += Input.GetAxis("Player1_Vertical") * playerSpeed * Time.deltaTime * scale;
+            }
         }
         else {
-            float scale = Input.GetAxis("Player2_Horizontal") > 0 ? 0.2f : 1;
-            position.y += Input.GetAxis("Player2_Vertical") * playerSpeed * Time.deltaTime * scale;
+            if (Input.GetAxis("Player2_Defend") <= 0) {
+                float scale = Input.GetAxis("Player2_Shot") > 0 ? 0.5f : 1;
+                position.y += Input.GetAxis("Player2_Vertical") * playerSpeed * Time.deltaTime * scale;
+            }
         }
 
         if (playerColorTime > 0) {

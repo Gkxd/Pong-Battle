@@ -14,26 +14,25 @@ public class MpBarUI : MonoBehaviour {
     }
 
     void Update() {
-        if (player == 0) {
-            if (GameState.Player1Mp == 100) {
-                image.color = Color.Lerp(baseColor, Color.white, (Mathf.Sin(Time.time * 10 * Mathf.PI) + 1) * 0.5f);
-            }
-            else if (GameState.Player1Mp >= 25) {
-                image.color = Color.Lerp(baseColor, Color.white, (Mathf.Sin(Time.time * 2 * Mathf.PI) + 1) * 0.5f - 0.5f);
-            }
-            else {
-                image.color = baseColor;
-            }
+        if (transform.localScale.x >= 1) {
+            image.color = Color.Lerp(baseColor, Color.white, (Mathf.Sin(Time.time * 10 * Mathf.PI) + 1) * 0.5f);
         }
-        else if (player == 1) {
-            if (GameState.Player2Mp == 100) {
-                image.color = Color.Lerp(baseColor, Color.white, (Mathf.Sin(Time.time * 10 * Mathf.PI) + 1) * 0.5f);
+        else {
+            if (player == 0) {
+                if (transform.localScale.x >= 0.25f) {
+                    image.color = Color.Lerp(baseColor, Color.white, (Mathf.Sin(Time.time * 2 * Mathf.PI) + 1) * 0.5f - 0.5f);
+                }
+                else {
+                    image.color = baseColor;
+                }
             }
-            else if (GameState.Player2Mp >= 20) {
-                image.color = Color.Lerp(baseColor, Color.white, (Mathf.Sin(Time.time * 2 * Mathf.PI) + 1) * 0.5f - 0.5f);
-            }
-            else {
-                image.color = baseColor;
+            else if (player == 1) {
+                if (transform.localScale.x >= 0.2f) {
+                    image.color = Color.Lerp(baseColor, Color.white, (Mathf.Sin(Time.time * 2 * Mathf.PI) + 1) * 0.5f - 0.5f);
+                }
+                else {
+                    image.color = baseColor;
+                }
             }
         }
     }

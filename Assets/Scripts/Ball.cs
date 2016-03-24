@@ -54,6 +54,10 @@ public class Ball : MonoBehaviour {
         if (initialized && rigidbody.velocity.sqrMagnitude < 0.1f) {
             destroyBall();
         }
+
+        if (transform.position.x > 10 || transform.position.x < -10 || transform.position.y > 10 || transform.position.y < -10) {
+            Destroy(gameObject, 5);
+        }
     }
 
     void OnCollisionEnter(Collision collision) {
@@ -101,8 +105,17 @@ public class Ball : MonoBehaviour {
                 rigidbody.velocity = velocity -= 2 * projection;
 
                 if (rigidbody.velocity.sqrMagnitude > 625) {
+                    for (int i = 0; i < 3; i++) {
+                        GameState.SpawnPoint(transform.position, lastTouchedPlayer);
+                    }
                     CameraShake.ShakeCamera(Mathf.Min(velocity.sqrMagnitude / 1000, 0.5f), 0.1f);
                     SfxManager.PlaySfxBallHitWall();
+                }
+                else {
+                    if (lastTouchedPlayer != -1) {
+                        GameState.SpawnPoint(transform.position, lastTouchedPlayer);
+                    }
+                    SfxManager.PlaySfxBallHitWall(0.3f);
                 }
             }
         }
