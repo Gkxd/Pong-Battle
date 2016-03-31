@@ -18,16 +18,30 @@ public class Ball : MonoBehaviour {
     private Vector3 velocity;
     private GameObject visual;
     private TrailRenderer trailRenderer;
+    private GameObject effect1;
+    private GameObject effect2;
 
     private bool initialized;
     private bool destroyed;
     private float trailColorTime = 0.5f;
     private float targetTrailColorTime = 0.5f;
 
+    private float effect1Scale;
+    private float effect2Scale;
+    private float effect1TargetScale;
+    private float effect2TargetScale;
+
     void Start() {
         rigidbody = GetComponent<Rigidbody>();
         trailRenderer = GetComponent<TrailRenderer>();
         visual = transform.Find("Visual").gameObject;
+        effect1 = transform.Find("Effect1").gameObject;
+        effect2 = transform.Find("Effect2").gameObject;
+
+        transform.localScale = new Vector3(0, 0, 1);
+
+        effect1Scale = effect1TargetScale = 7;
+        effect2Scale = effect2TargetScale = 8;
 
         GameState.BallCount++;
     }
@@ -51,6 +65,16 @@ public class Ball : MonoBehaviour {
 
         trailColorTime = Mathf.Lerp(trailColorTime, targetTrailColorTime, 10 * Time.deltaTime);
 
+        effect1.transform.localScale = new Vector3(effect1Scale, effect1Scale, 1);
+        effect2.transform.localScale = new Vector3(effect2Scale, effect2Scale, 1);
+
+
+        effect1Scale = Mathf.Lerp(effect1Scale, effect1TargetScale, 10 * Time.deltaTime);
+        effect2Scale = Mathf.Lerp(effect2Scale, effect2TargetScale, 10 * Time.deltaTime);
+
+        effect1TargetScale = Mathf.Lerp(effect1TargetScale, 7, 5 * Time.deltaTime);
+        effect2TargetScale = Mathf.Lerp(effect2TargetScale, 8, 5 * Time.deltaTime);
+
         if (initialized && rigidbody.velocity.sqrMagnitude < 0.1f) {
             destroyBall();
         }
@@ -61,6 +85,9 @@ public class Ball : MonoBehaviour {
     }
 
     void OnCollisionEnter(Collision collision) {
+        effect1TargetScale += 2;
+        effect2TargetScale -= 2;
+
         if (collision.gameObject.layer == LayerMask.NameToLayer("Player")) {
             Vector3 collisionNormal = collision.contacts[0].normal;
 
@@ -68,16 +95,17 @@ public class Ball : MonoBehaviour {
                 Player player = collision.gameObject.GetComponent<Player>();
                 lastTouchedPlayer = player.playerNumber;
 
-                /*
-                Vector3 projection = Vector3.Project(velocity, collisionNormal);
-                rigidbody.velocity = velocity -= 2 * projection;
-                */
                 Vector3 newDirection = transform.position - player.transform.position;
+                newDirection.y *= 0.5f;
                 if (newDirection.sqrMagnitude < 1) {
                     newDirection.Normalize();
                 }
                 rigidbody.velocity = velocity = speed * newDirection;
                 speed = velocity.magnitude;
+
+                if (speed > 30) {
+                    TimeController.SlowDownTime();
+                }
 
                 bonusPoints++;
 
@@ -104,7 +132,7 @@ public class Ball : MonoBehaviour {
                 Vector3 projection = Vector3.Project(velocity, collisionNormal);
                 rigidbody.velocity = velocity -= 2 * projection;
 
-                if (rigidbody.velocity.sqrMagnitude > 625) {
+                if (rigidbody.velocity.sqrMagnitude > 900) {
                     for (int i = 0; i < 3; i++) {
                         GameState.SpawnPoint(transform.position, lastTouchedPlayer);
                     }
@@ -115,7 +143,7 @@ public class Ball : MonoBehaviour {
                     if (lastTouchedPlayer != -1) {
                         GameState.SpawnPoint(transform.position, lastTouchedPlayer);
                     }
-                    SfxManager.PlaySfxBallHitWall(0.3f);
+                    SfxManager.PlaySfxBallHitWall(0.15f);
                 }
             }
         }

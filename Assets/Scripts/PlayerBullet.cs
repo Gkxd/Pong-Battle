@@ -30,6 +30,8 @@ public class PlayerBullet : MonoBehaviour {
     private float lifeTime;
 
     private Material material;
+    private float alpha;
+    private float targetAlpha;
 
     void Start() {
         rigidbody = GetComponent<Rigidbody>();
@@ -43,6 +45,13 @@ public class PlayerBullet : MonoBehaviour {
         trailRenderer.startWidth = 0;
 
         material = transform.Find("Visual").GetComponent<Renderer>().material;
+
+        if ((playerNumber == 0 && transform.position.x < -5) || (playerNumber == 1 && transform.position.x > 5)) {
+            alpha = targetAlpha = 0.2f;
+        }
+        else {
+            alpha = targetAlpha = 1;
+        }
 
         //SfxManager.PlaySfxMissileSpawn();
     }
@@ -60,11 +69,24 @@ public class PlayerBullet : MonoBehaviour {
             trailRenderer.startWidth = Mathf.Lerp(trailRenderer.startWidth, 0, Time.deltaTime);
         }
 
-        if (transform.position.x > 10 || transform.position.x < -10 || transform.position.y > 9 && transform.position.y < -9) {
+        if (transform.position.x > 10 || transform.position.x < -10 || transform.position.y > 9 || transform.position.y < -9) {
             Destroy(gameObject, 0.5f);
         }
 
-        material.color = Color.Lerp(darkColor, brightColor, colorChangeCurve.Evaluate(lifeTime));
+
+        Color bulletColor = Color.Lerp(darkColor, brightColor, colorChangeCurve.Evaluate(lifeTime));
+
+        if ((playerNumber == 0 && transform.position.x < -5) || (playerNumber == 1 && transform.position.x > 5)) {
+            targetAlpha = 0.2f;
+        }
+        else {
+            targetAlpha = 1;
+        }
+
+        alpha = Mathf.Lerp(alpha, targetAlpha, 5 * Time.deltaTime);
+        bulletColor.a = alpha;
+
+        material.color = bulletColor;
         lifeTime += Time.deltaTime;
     }
 
