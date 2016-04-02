@@ -91,27 +91,54 @@ public class Ball : MonoBehaviour {
         if (collision.gameObject.layer == LayerMask.NameToLayer("Player")) {
             Vector3 collisionNormal = collision.contacts[0].normal;
 
-            if (Vector3.Dot(collisionNormal, Vector3.up) == 0) {
+            if (Mathf.Abs(Vector3.Dot(collisionNormal, Vector3.up)) < 0.9f) {
                 Player player = collision.gameObject.GetComponent<Player>();
                 lastTouchedPlayer = player.playerNumber;
 
                 Vector3 newDirection = transform.position - player.transform.position;
-                newDirection.y *= 0.5f;
-                if (newDirection.sqrMagnitude < 1) {
+
+
+                if ((lastTouchedPlayer == 0 && Input.GetAxis("Player1_Shot") > 0) || (lastTouchedPlayer == 1 && Input.GetAxis("Player2_Shot") > 0)) {
+                    newDirection.y *= 0.25f;
                     newDirection.Normalize();
+                    if (speed < 50) {
+                        speed += 10;
+                        if (speed > 50) {
+                            speed = 50;
+                        }
+                    }
+
+
+                    bonusPoints += 5;
+
+                    for (int i = 0; i < 15; i++) {
+                        GameState.SpawnPoint(transform.position, lastTouchedPlayer);
+                    }
                 }
+                else {
+                    newDirection.y = Mathf.Sign(newDirection.y) * Mathf.Min(Mathf.Abs(newDirection.x), Mathf.Abs(newDirection.y * 0.1f));
+                    newDirection.Normalize();
+                    speed += 3;
+
+                    if (speed > 40) {
+                        speed = 40;
+                    }
+
+                    bonusPoints++;
+
+                    for (int i = 0; i < 5; i++) {
+                        GameState.SpawnPoint(transform.position, lastTouchedPlayer);
+                    }
+                }
+
                 rigidbody.velocity = velocity = speed * newDirection;
                 speed = velocity.magnitude;
 
-                if (speed > 30) {
+                if (speed >= 35) {
                     TimeController.SlowDownTime();
+                    CameraShake.ShakeCamera(bonusPoints * 0.2f, bonusPoints * 0.01f);
                 }
 
-                bonusPoints++;
-
-                for (int i = 0; i < 5; i++) {
-                    GameState.SpawnPoint(transform.position, lastTouchedPlayer);
-                }
 
                 targetTrailColorTime = lastTouchedPlayer;
                 trailRenderer.time = Mathf.Clamp(bonusPoints * 0.1f, 0.1f, 5);
@@ -132,7 +159,7 @@ public class Ball : MonoBehaviour {
                 Vector3 projection = Vector3.Project(velocity, collisionNormal);
                 rigidbody.velocity = velocity -= 2 * projection;
 
-                if (rigidbody.velocity.sqrMagnitude > 900) {
+                if (rigidbody.velocity.sqrMagnitude >= 625) {
                     for (int i = 0; i < 3; i++) {
                         GameState.SpawnPoint(transform.position, lastTouchedPlayer);
                     }
@@ -162,6 +189,13 @@ public class Ball : MonoBehaviour {
             GameObject deathEffect = (GameObject)Instantiate(ballDeathPrefab, transform.position, Quaternion.identity);
 
             int player = transform.position.x > 0 ? 0 : 1;
+
+            if (player == 0) {
+                GameState.Player2Hp -= 20;
+            }
+            else {
+                GameState.Player1Hp -= 20;
+            }
 
 
             ParticleSystem deathParticles = deathEffect.GetComponent<ParticleSystem>();

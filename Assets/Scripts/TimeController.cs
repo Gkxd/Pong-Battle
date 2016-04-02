@@ -28,12 +28,12 @@ public class TimeController : MonoBehaviour {
     void Update() {
         scale = Mathf.Lerp(scale, timeSlow ? 1 : 0, Time.deltaTime * (timeSlow ? 15 : 5));
 
-        motionBlur.blurAmount = Mathf.Lerp(0, 0.8f, scale);
+        motionBlur.blurAmount = Mathf.Lerp(0, 0.9f, scale);
         Time.timeScale = Mathf.Lerp(1, 0.2f, scale);
     }
 
     private IEnumerator returnToNormal() {
-        yield return new WaitForSeconds(0.3f);
+        yield return new WaitForSeconds(0.15f);
         timeSlow = false;
     }
 }

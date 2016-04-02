@@ -13,6 +13,8 @@ public class SfxManager : MonoBehaviour {
     public GameObject pinkUltimate;
     public GameObject blueSpecial;
     public GameObject blueUltimate;
+    public GameObject ultimateCharged;
+    public GameObject uiSwitch;
 
     public static void PlaySfxHurt() {
         if (instance) {
@@ -56,6 +58,18 @@ public class SfxManager : MonoBehaviour {
     public static void PlaySfxBlueUltimate() {
         if (instance) {
             Instantiate(instance.blueUltimate);
+        }
+    }
+
+    public static void PlaySfxUltimateCharged() {
+        if (instance) {
+            Instantiate(instance.ultimateCharged);
+        }
+    }
+
+    public static void PlaySfxUiSwitch() {
+        if (instance) {
+            Instantiate(instance.uiSwitch);
         }
     }
 

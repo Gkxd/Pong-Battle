@@ -10,6 +10,9 @@ public class SwitchUIScreens : MonoBehaviour {
 
     public GameObject screenA2;
 
+    public GameObject deactivateA;
+    public GameObject deactivateB;
+
     void Update() {
         if (Time.time - lastTimeTriggered > 0.5f) {
             if (Input.GetAxis("Player1_Shot") > 0 || Input.GetAxis("Player2_Shot") > 0) {
@@ -21,13 +24,20 @@ public class SwitchUIScreens : MonoBehaviour {
 
                 lastTimeTriggered = Time.time;
                 gameObject.SetActive(false);
+
+                if (deactivateA) deactivateA.SetActive(false);
+                if (deactivateB) deactivateB.SetActive(false);
+
+                SfxManager.PlaySfxUiSwitch();
             }
-            else if (Input.GetAxis("Player1_Special") > 0 || Input.GetAxis("Player2_Special") > 0) {
+            else if ((screenB != null) && (Input.GetAxis("Player1_Defend") > 0 || Input.GetAxis("Player2_Defend") > 0 || Input.GetAxis("Player1_Special") > 0 || Input.GetAxis("Player2_Special") > 0)) {
                 screenB.SetActive(true);
                 gameObject.SetActive(false);
 
                 lastTimeTriggered = Time.time;
                 gameObject.SetActive(false);
+
+                SfxManager.PlaySfxUiSwitch();
             }
         }
     }

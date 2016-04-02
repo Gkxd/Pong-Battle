@@ -5,9 +5,7 @@ using System.Collections;
 public class GameState : MonoBehaviour {
 
     private static GameState instance;
-
-    public static bool ShouldDeleteBall { get; set; } // Flag used to delete all on screen balls
-    public static bool IsTutorial { get; private set; }
+    public static bool IsGameOver { get; private set; }
 
     public static GameObject Player1 {
         get { if (instance) return instance.player1; return null; }
@@ -20,8 +18,8 @@ public class GameState : MonoBehaviour {
         get { if (instance) return instance.player1Hp; return -1; }
         set {
             if (instance) {
-                instance.player1Hp = Mathf.Clamp(value, 0, 30);
-                instance.player1HpBar.localScale = new Vector3(instance.player1Hp / 30f, 1, 1);
+                instance.player1Hp = Mathf.Clamp(value, 0, 100);
+                instance.player1HpBar.localScale = new Vector3(instance.player1Hp / 100f, 1, 1);
 
                 if (instance.player1Hp == 0) {
                     instance.endGame(1);
@@ -33,8 +31,8 @@ public class GameState : MonoBehaviour {
         get { if (instance) return instance.player2Hp; return -1; }
         set {
             if (instance) {
-                instance.player2Hp = Mathf.Clamp(value, 0, 30);
-                instance.player2HpBar.localScale = new Vector3(instance.player2Hp / 30f, 1, 1);
+                instance.player2Hp = Mathf.Clamp(value, 0, 100);
+                instance.player2HpBar.localScale = new Vector3(instance.player2Hp / 100f, 1, 1);
 
                 if (instance.player2Hp == 0) {
                     instance.endGame(0);
@@ -42,12 +40,19 @@ public class GameState : MonoBehaviour {
             }
         }
     }
+    
     public static int Player1Mp {
         get { if (instance) return instance.player1Mp; return -1; }
         set {
             if (instance) {
+                int oldValue = instance.player1Mp;
+
                 instance.player1Mp = Mathf.Clamp(value, 0, 100);
                 instance.player1MpBar.localScale = new Vector3(instance.player1Mp / 100f, 1, 1);
+
+                if (instance.player1Mp == 100 && oldValue < 100) {
+                    SfxManager.PlaySfxUltimateCharged();
+                }
             }
         }
     }
@@ -55,8 +60,14 @@ public class GameState : MonoBehaviour {
         get { if (instance) return instance.player2Mp; return -1; }
         set {
             if (instance) {
+                int oldValue = instance.player2Mp;
+
                 instance.player2Mp = Mathf.Clamp(value, 0, 100);
                 instance.player2MpBar.localScale = new Vector3(instance.player2Mp / 100f, 1, 1);
+
+                if (instance.player2Mp == 100 && oldValue < 100) {
+                    SfxManager.PlaySfxUltimateCharged();
+                }
             }
         }
     }
@@ -108,8 +119,6 @@ public class GameState : MonoBehaviour {
     public RectTransform player1MpBar;
     public RectTransform player2MpBar;
 
-    public bool isTutorial;
-
     private int ballCount;
 
     private int player1Hp;
@@ -122,7 +131,6 @@ public class GameState : MonoBehaviour {
 
     void OnEnable() {
         instance = this;
-        IsTutorial = isTutorial;
 
         foreach (Transform child in game.transform) {
             if (child.gameObject.layer == LayerMask.NameToLayer("Ball")) {
@@ -130,11 +138,16 @@ public class GameState : MonoBehaviour {
             }
         }
 
-        Player1Hp = Player2Hp = 50;
+        IsGameOver = false;
+
+        Player1Hp = Player2Hp = 100;
         Player1Mp = Player2Mp = 0;
 
-        player1.transform.localPosition = new Vector3(-9f, 0, 0);
-        player2.transform.localPosition = new Vector3(9f, 0, 0);
+        player1.transform.localPosition = new Vector3(-8.5f, 0, 0);
+        player2.transform.localPosition = new Vector3(8.5f, 0, 0);
+
+        player1.SetActive(true);
+        player2.SetActive(true);
 
         ballCount = 0;
 
@@ -143,7 +156,7 @@ public class GameState : MonoBehaviour {
 
     private IEnumerator spawnRandomBallAtCenter(float speed = 8, float delay = 2.9f) {
         while (true) {
-            if (Player1Hp == 0 || player2Hp == 0) {
+            if (Player1Hp == 0 || Player2Hp == 0) {
                 break;
             }
 
@@ -162,11 +175,21 @@ public class GameState : MonoBehaviour {
         GameObject winnerText = winningPlayer == 0 ? player1Wins : player2Wins;
         GameObject loserText = winningPlayer == 0 ? player2Wins : player1Wins;
 
+        GameObject loserPlayer = winningPlayer == 0 ? player2 : player1;
+
+        loserPlayer.SetActive(false);
+
         winnerText.SetActive(true);
         loserText.SetActive(false);
+
         winScreen.SetActive(true);
-        hud.SetActive(false);
-        game.SetActive(false);
-        SwitchUIScreens.lastTimeTriggered = Time.time + 1;
+
+        StopCoroutine(ballSpawnRoutine);
+
+        //hud.SetActive(false);
+        //game.SetActive(false);
+        SwitchUIScreens.lastTimeTriggered = Time.time + 5;
+
+        IsGameOver = true;
     }
 }

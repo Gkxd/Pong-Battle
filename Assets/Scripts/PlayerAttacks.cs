@@ -67,20 +67,28 @@ public class PlayerAttacks : MonoBehaviour {
             }
         }
 
+        if (GameState.IsGameOver) {
+            StopAllCoroutines();
+        }
+
         if (playerNumber == 0) {
             if (Input.GetAxis("Player1_Defend") > 0) {
+                /*
                 if (Input.GetAxis("Player1_Vertical") > 0) {
                     targetSize = 1;
-                    targetOffset = 3;
+                    targetOffset = 4;
                 }
                 else if (Input.GetAxis("Player1_Vertical") < 0) {
                     targetSize = 1;
-                    targetOffset = -3;
+                    targetOffset = -4;
                 }
                 else {
                     targetSize = 1.5f;
                     targetOffset = 0;
                 }
+                */
+                targetSize = 1.75f;
+                targetOffset = 1.5f * Input.GetAxis("Player1_Vertical");
             }
             else {
                 if (Input.GetAxis("Player1_Shot") > 0) {
@@ -92,18 +100,9 @@ public class PlayerAttacks : MonoBehaviour {
                     targetOffset = 0;
                 }
 
+                if (GameState.IsGameOver) return;
+
                 if (Input.GetAxis("Player1_Shot") > 0 && cooldown == 0) {
-
-
-                    /*
-                    Vector3 initialVelocity = new Vector3(Random.Range(-3, 0.2f), Random.Range(-2.5f, 2.5f), 0);
-                    Vector3 targetVelocity = new Vector3(Random.Range(6, 8), Random.Range(-0.5f, 0.5f) + Input.GetAxis("Player1_Vertical"), 0);
-
-                    bullet.velocity = initialVelocity;
-                    bullet.movement = new ApproachVelocity(targetVelocity);
-                    */
-
-
                     if (GameState.Player1Hp < 10) {
                         for (int i = -2; i <= 2; i++) {
 
@@ -143,6 +142,8 @@ public class PlayerAttacks : MonoBehaviour {
                 }
             }
 
+            if (GameState.IsGameOver) return;
+
             if (Input.GetAxis("Player1_Special") > 0 && specialCooldown == 0) {
                 if (GameState.Player1Mp == 100) {
                     SfxManager.PlaySfxPinkUltimate();
@@ -155,29 +156,32 @@ public class PlayerAttacks : MonoBehaviour {
                     GameState.Player1Mp -= 100;
                     specialCooldown += 8;
                 }
-                else if (GameState.Player1Mp >= 25) {
+                else if (GameState.Player1Mp >= 20) {
                     SfxManager.PlaySfxPinkSpecial();
                     StartCoroutine(player1Special());
 
-                    GameState.Player1Mp -= 25;
+                    GameState.Player1Mp -= 20;
                     specialCooldown += 4;
                 }
             }
         }
         else {
             if (Input.GetAxis("Player2_Defend") > 0 && cooldown == 0) {
+                /*
                 if (Input.GetAxis("Player2_Vertical") > 0) {
-                    targetSize = 0.75f;
-                    targetOffset = 2.5f;
+                    targetSize = 1;
+                    targetOffset = 4f;
                 }
                 else if (Input.GetAxis("Player2_Vertical") < 0) {
-                    targetSize = 0.75f;
-                    targetOffset = -2.5f;
+                    targetSize = 1;
+                    targetOffset = -4f;
                 }
                 else {
-                    targetSize = 2f;
+                    targetSize = 1.5f;
                     targetOffset = 0;
-                }
+                }*/
+                targetSize = 1.75f;
+                targetOffset = 1.5f * Input.GetAxis("Player2_Vertical");
             }
             else {
                 if (Input.GetAxis("Player2_Shot") > 0) {
@@ -188,6 +192,8 @@ public class PlayerAttacks : MonoBehaviour {
                     targetSize = 1;
                     targetOffset = 0;
                 }
+
+                if (GameState.IsGameOver) return;
 
                 if (Input.GetAxis("Player2_Shot") > 0 && cooldown == 0) {
                     float speed = 7;
@@ -223,6 +229,8 @@ public class PlayerAttacks : MonoBehaviour {
                 }
             }
 
+            if (GameState.IsGameOver) return;
+
             if (Input.GetAxis("Player2_Special") > 0 && specialCooldown == 0) {
 
                 if (GameState.Player2Mp == 100) {
@@ -256,6 +264,7 @@ public class PlayerAttacks : MonoBehaviour {
     private IEnumerator player1Special() {
 
         for (int i = 0; i < 10; i++) {
+            
 
             for (int j = -2; j <= 2; j++) {
                 PlayerBullet bullet = GameState.SpawnPlayerBullet(new Vector3(-9, GameState.Player1.transform.position.y + j * 0.3f, 0), playerNumber);
@@ -274,21 +283,21 @@ public class PlayerAttacks : MonoBehaviour {
     private IEnumerator player1Ultimate() {
         float toggle = 1;
 
-        StartCoroutine(bulletSlash(60, 0.2f, -8, -6, 8, 31, toggle *= -1));
+        StartCoroutine(bulletSlash(30, 0.2f, -8, -6, 8, 31, toggle *= -1));
         yield return new WaitForSeconds(2);
 
-        StartCoroutine(bulletSlash(60, 0.2f, -8, -4, 8, 31, toggle *= -1));
+        StartCoroutine(bulletSlash(30, 0.2f, -8, -4, 8, 31, toggle *= -1));
         yield return new WaitForSeconds(1);
-        StartCoroutine(bulletSlash(50, 0.2f, -8, -4, 8, 31, toggle *= -1));
+        StartCoroutine(bulletSlash(25, 0.2f, -8, -4, 8, 31, toggle *= -1));
         yield return new WaitForSeconds(1);
 
         for (int i = 0; i < 4; i++) {
-            StartCoroutine(bulletSlash(60, 0.2f, -8, -2, 8, 37, toggle *= -1));
+            StartCoroutine(bulletSlash(30, 0.2f, -8, -2, 8, 37, toggle *= -1));
             yield return new WaitForSeconds(0.4f);
         }
 
         for (int i = 0; i < 8; i++) {
-            StartCoroutine(bulletSlash(60, 0.1f, -8, 0, 8, 47, toggle *= -1));
+            StartCoroutine(bulletSlash(30, 0.1f, -8, 0, 8, 47, toggle *= -1));
             yield return new WaitForSeconds(0.2f);
         }
     }
@@ -298,9 +307,11 @@ public class PlayerAttacks : MonoBehaviour {
         Vector3 end = new Vector3(Random.Range(minX, maxX), -5 * startY, 0);
         Vector3 dPos = (end - start) / amount;
 
-        float angle = Random.Range(0, 2 * Mathf.PI);
+        float angle = Random.Range(-Mathf.PI * 0.5f, Mathf.PI * 0.5f);
 
         for (int i = 0; i < amount; i++) {
+            
+
             PlayerBullet bullet = GameState.SpawnPlayerBullet(start + i * dPos, playerNumber);
 
             Vector3 velocity = new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0) * (speed + 0.3f * (i % 5));
@@ -310,9 +321,12 @@ public class PlayerAttacks : MonoBehaviour {
 
             if (i % 5 == 4) {
                 angle += spin * Mathf.Deg2Rad;
+                if (angle > Mathf.PI/2) {
+                    angle -= Mathf.PI;
+                }
             }
             else {
-                angle += 2 * Mathf.Deg2Rad;
+                angle += Mathf.Deg2Rad;
             }
 
             yield return new WaitForSeconds(totalTime / amount);
@@ -354,6 +368,8 @@ public class PlayerAttacks : MonoBehaviour {
     private IEnumerator player2Ultimate(Vector3 position) {
         float angle = 0;
         for (int i = 0; i < 64; i++) {
+            
+
             for (int j = 0; j < 12; j++) {
                 float direction = (angle + j * 360/12f) * Mathf.Deg2Rad;
                 Vector3 velocity = new Vector3(Mathf.Cos(direction), Mathf.Sin(direction), 0) * (2 + i * 0.01f);

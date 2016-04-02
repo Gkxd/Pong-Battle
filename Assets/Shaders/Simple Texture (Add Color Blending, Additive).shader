@@ -1,4 +1,4 @@
-﻿Shader "Useful Shaders/Simple Texture (Add Blending)"
+﻿Shader "Useful Shaders/Simple Texture (Add Blending, Add Blended)"
 {
 	Properties
 	{
@@ -15,7 +15,7 @@
 			Cull Off
 			ZWrite Off
             ZTest Off
-			Blend SrcAlpha OneMinusSrcAlpha
+			Blend SrcAlpha One
 
 			CGPROGRAM
 			#pragma vertex vert
@@ -56,7 +56,7 @@
 			fixed4 frag (v2f i) : SV_Target
 			{
                 fixed4 c = tex2D(_MainTex, i.uv);
-                c.rgb += _Color.rgb;
+                c.rgb += _Color.rgb + i.color.rgb;
 
 				return c;
 			}
