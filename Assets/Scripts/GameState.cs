@@ -5,7 +5,14 @@ using System.Collections;
 public class GameState : MonoBehaviour {
 
     private static GameState instance;
+
+    public static int WinCounter { get; private set; }
     public static bool IsGameOver { get; private set; }
+
+    public static int Player1BallsHit { get; set; }
+    public static int Player2BallsHit { get; set; }
+    public static int Player1BulletsFired { get; set; }
+    public static int Player2BulletsFired { get; set; }
 
     public static GameObject Player1 {
         get { if (instance) return instance.player1; return null; }
@@ -40,7 +47,7 @@ public class GameState : MonoBehaviour {
             }
         }
     }
-    
+
     public static int Player1Mp {
         get { if (instance) return instance.player1Mp; return -1; }
         set {
@@ -87,6 +94,13 @@ public class GameState : MonoBehaviour {
 
     public static PlayerBullet SpawnPlayerBullet(Vector3 position, int player) {
         if (instance) {
+            if (player == 0) {
+                Player1BulletsFired++;
+            }
+            else if (player == 1) {
+                Player2BulletsFired++;
+            }
+
             PlayerBullet bullet = ((GameObject)Instantiate(instance.playerBulletPrefab, position, Quaternion.identity)).GetComponent<PlayerBullet>();
             bullet.playerNumber = player;
             return bullet;
@@ -104,6 +118,8 @@ public class GameState : MonoBehaviour {
     public GameObject ballPrefab;
     public GameObject pointPrefab;
     public GameObject playerBulletPrefab;
+    public GameObject player1DeathPrefab;
+    public GameObject player2DeathPrefab;
 
     public GameObject player1;
     public GameObject player2;
@@ -143,6 +159,16 @@ public class GameState : MonoBehaviour {
         Player1Hp = Player2Hp = 100;
         Player1Mp = Player2Mp = 0;
 
+        if (WinCounter <= -3) {
+            Player1Mp = 20 - (WinCounter + 3) * 10;
+        }
+        else if (WinCounter >= 3) {
+            Player2Mp = 20 + (WinCounter - 3) * 10;
+        }
+
+        Player1BallsHit = Player2BallsHit = Player1BulletsFired = Player2BulletsFired = 0;
+
+
         player1.transform.localPosition = new Vector3(-8.5f, 0, 0);
         player2.transform.localPosition = new Vector3(8.5f, 0, 0);
 
@@ -172,24 +198,46 @@ public class GameState : MonoBehaviour {
     }
 
     private void endGame(int winningPlayer) {
-        GameObject winnerText = winningPlayer == 0 ? player1Wins : player2Wins;
-        GameObject loserText = winningPlayer == 0 ? player2Wins : player1Wins;
+        if (!IsGameOver) {
+            GameObject winnerText = winningPlayer == 0 ? player1Wins : player2Wins;
+            GameObject loserText = winningPlayer == 0 ? player2Wins : player1Wins;
 
-        GameObject loserPlayer = winningPlayer == 0 ? player2 : player1;
+            GameObject loserPlayer = winningPlayer == 0 ? player2 : player1;
 
-        loserPlayer.SetActive(false);
+            Instantiate(winningPlayer == 0 ? player2DeathPrefab : player1DeathPrefab, loserPlayer.transform.position, Quaternion.identity);
 
-        winnerText.SetActive(true);
-        loserText.SetActive(false);
+            loserPlayer.SetActive(false);
 
-        winScreen.SetActive(true);
+            winnerText.SetActive(true);
+            loserText.SetActive(false);
 
-        StopCoroutine(ballSpawnRoutine);
+            winScreen.SetActive(true);
 
-        //hud.SetActive(false);
-        //game.SetActive(false);
-        SwitchUIScreens.lastTimeTriggered = Time.time + 5;
+            StopCoroutine(ballSpawnRoutine);
 
-        IsGameOver = true;
+            SwitchUIScreens.lastTimeTriggered = Time.time + 5;
+
+            IsGameOver = true;
+
+            if (winningPlayer == 0) {
+                if (WinCounter >= 0) {
+                    WinCounter++;
+                }
+                else {
+                    WinCounter = 0;
+                }
+            }
+            else if (winningPlayer == 1) {
+                if (WinCounter <= 0) {
+                    WinCounter--;
+                }
+                else {
+                    WinCounter = 0;
+                }
+            }
+
+            SfxManager.PlaySfxPlayerDeath();
+            TimeController.SlowDownTime(1);
+        }
     }
 }

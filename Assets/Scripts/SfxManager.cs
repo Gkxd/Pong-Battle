@@ -15,6 +15,8 @@ public class SfxManager : MonoBehaviour {
     public GameObject blueUltimate;
     public GameObject ultimateCharged;
     public GameObject uiSwitch;
+    public GameObject playerDeath;
+    public GameObject getPoint;
 
     public static void PlaySfxHurt() {
         if (instance) {
@@ -70,6 +72,18 @@ public class SfxManager : MonoBehaviour {
     public static void PlaySfxUiSwitch() {
         if (instance) {
             Instantiate(instance.uiSwitch);
+        }
+    }
+
+    public static void PlaySfxPlayerDeath() {
+        if (instance) {
+            Instantiate(instance.playerDeath);
+        }
+    }
+
+    public static void PlaySfxGetPoint() {
+        if (instance) {
+            Instantiate(instance.getPoint);
         }
     }
 

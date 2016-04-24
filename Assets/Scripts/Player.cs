@@ -31,7 +31,10 @@ public class Player : MonoBehaviour {
             else if (Input.GetAxis("Player1_Shot") > 0) {
                 scale = 0.5f;
             }
-            position.y += Input.GetAxis("Player1_Vertical") * playerSpeed * Time.deltaTime * scale;
+
+            Vector3 movement = new Vector3(Input.GetAxis("Player1_Horizontal"), Input.GetAxis("Player1_Vertical"), 0).normalized * playerSpeed * Time.deltaTime * scale;
+
+            position += movement;
         }
         else {
             float scale = 1;
@@ -41,7 +44,10 @@ public class Player : MonoBehaviour {
             else if (Input.GetAxis("Player2_Shot") > 0) {
                 scale = 0.5f;
             }
-            position.y += Input.GetAxis("Player2_Vertical") * playerSpeed * Time.deltaTime * scale;
+
+            Vector3 movement = new Vector3(Input.GetAxis("Player2_Horizontal"), Input.GetAxis("Player2_Vertical"), 0).normalized * playerSpeed * Time.deltaTime * scale;
+
+            position += movement;
         }
 
         if (playerColorTime > 0) {
@@ -49,6 +55,12 @@ public class Player : MonoBehaviour {
         }
 
         position.y = Mathf.Clamp(position.y, -5, 4);
+        if (playerNumber == 0) {
+            position.x = Mathf.Clamp(position.x, -8.88f, -6);
+        }
+        else if (playerNumber == 1) {
+            position.x = Mathf.Clamp(position.x, 6, 8.88f);
+        }
         transform.localPosition = position;
         playerMaterial.color = playerColor.Evaluate(playerColorTime);
     }

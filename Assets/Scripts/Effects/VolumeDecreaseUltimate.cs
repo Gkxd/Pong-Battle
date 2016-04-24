@@ -16,15 +16,15 @@ public class VolumeDecreaseUltimate : MonoBehaviour {
 
         audioSource = GetComponent<AudioSource>();
 
-        targetVolume = volume = 0.3f;
+        targetVolume = volume = 0.5f;
 	}
 	
 	void Update () {
         if (Time.time - LastUltTime < 8) {
-            targetVolume = 0.1f;
+            targetVolume = 0.2f;
         }
         else {
-            targetVolume = 0.3f;
+            targetVolume = 0.5f;
         }
 
         volume = Mathf.Lerp(volume, targetVolume, Time.deltaTime);

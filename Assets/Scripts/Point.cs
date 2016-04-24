@@ -81,6 +81,8 @@ public class Point : MonoBehaviour {
                     else {
                         GameState.Player2Mp++;
                     }
+
+                    SfxManager.PlaySfxGetPoint();
                 }
             }
             else {

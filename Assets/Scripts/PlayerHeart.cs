@@ -34,21 +34,18 @@ public class PlayerHeart : MonoBehaviour {
     }
 
     void OnTriggerEnter(Collider collider) {
-        if (!GameState.IsGameOver) {
-            PlayerBullet bullet = collider.GetComponent<PlayerBullet>();
-            if (bullet.playerNumber != playerNumber) {
-                if (Time.time - lastHitTime > 2) {
-                    playerColorTime = 1;
-                    if (playerNumber == 0) {
-                        GameState.Player1Hp -= 3;
-                    }
-                    else {
-                        GameState.Player2Hp -= 3;
-                    }
-
-                    //SfxManager.PlaySfxMissileSpawn();
-                    SfxManager.PlaySfxHurt();
+        PlayerBullet bullet = collider.GetComponent<PlayerBullet>();
+        if (bullet.playerNumber != playerNumber) {
+            if (Time.time - lastHitTime > 2) {
+                playerColorTime = 1;
+                if (playerNumber == 0) {
+                    GameState.Player1Hp -= 3;
                 }
+                else {
+                    GameState.Player2Hp -= 3;
+                }
+
+                SfxManager.PlaySfxHurt();
             }
         }
     }

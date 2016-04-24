@@ -98,14 +98,14 @@ public class Ball : MonoBehaviour {
                 Vector3 newDirection = transform.position - player.transform.position;
 
 
-                if ((lastTouchedPlayer == 0 && Input.GetAxis("Player1_Shot") > 0) || (lastTouchedPlayer == 1 && Input.GetAxis("Player2_Shot") > 0)) {
+                if ((lastTouchedPlayer == 0 && Input.GetAxis("Player1_Shot") > 0 && Input.GetAxis("Player1_Defend") <= 0) || (lastTouchedPlayer == 1 && Input.GetAxis("Player2_Shot") > 0 && Input.GetAxis("Player2_Defend") <= 0)) {
                     newDirection.y *= 0.25f;
                     newDirection.Normalize();
                     if (speed < 50) {
                         speed += 10;
-                        if (speed > 50) {
-                            speed = 50;
-                        }
+                    }
+                    else {
+                        speed += 5;
                     }
 
 
@@ -118,10 +118,11 @@ public class Ball : MonoBehaviour {
                 else {
                     newDirection.y = Mathf.Sign(newDirection.y) * Mathf.Min(Mathf.Abs(newDirection.x), Mathf.Abs(newDirection.y * 0.1f));
                     newDirection.Normalize();
-                    speed += 3;
-
-                    if (speed > 40) {
-                        speed = 40;
+                    if (speed <= 40) {
+                        speed += 3;
+                    }
+                    else {
+                        speed += 1;
                     }
 
                     bonusPoints++;
@@ -134,7 +135,7 @@ public class Ball : MonoBehaviour {
                 rigidbody.velocity = velocity = speed * newDirection;
                 speed = velocity.magnitude;
 
-                if (speed >= 35) {
+                if (speed >= 30) {
                     TimeController.SlowDownTime();
                     CameraShake.ShakeCamera(bonusPoints * 0.2f, bonusPoints * 0.01f);
                 }
@@ -191,17 +192,19 @@ public class Ball : MonoBehaviour {
             int player = transform.position.x > 0 ? 0 : 1;
 
             if (player == 0) {
-                GameState.Player2Hp -= 20;
+                GameState.Player2Hp -= Mathf.Max(GameState.Player2Hp / 5, 10);
+                GameState.Player1BallsHit++;
             }
             else {
-                GameState.Player1Hp -= 20;
+                GameState.Player1Hp -= Mathf.Max(GameState.Player1Hp / 5, 10);
+                GameState.Player2BallsHit++;
             }
 
 
             ParticleSystem deathParticles = deathEffect.GetComponent<ParticleSystem>();
             deathParticles.startColor = trailColor.Evaluate(player);
 
-            for (int i = 0; i < 10 + 5*bonusPoints; i++) {
+            for (int i = 0; i < 15 + 2 * bonusPoints; i++) {
                 GameState.SpawnPoint(transform.position, player);
             }
 

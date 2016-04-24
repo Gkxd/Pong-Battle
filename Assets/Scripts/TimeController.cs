@@ -7,10 +7,11 @@ public class TimeController : MonoBehaviour {
 
     public static TimeController instance;
 
-    public static void SlowDownTime() {
+    public static void SlowDownTime(float time = 0.15f) {
         if (instance && instance.timeSlow == false) {
             instance.timeSlow = true;
-            instance.StartCoroutine(instance.returnToNormal());
+            instance.StopAllCoroutines();
+            instance.StartCoroutine(instance.returnToNormal(time));
         }
     }
 
@@ -32,8 +33,8 @@ public class TimeController : MonoBehaviour {
         Time.timeScale = Mathf.Lerp(1, 0.2f, scale);
     }
 
-    private IEnumerator returnToNormal() {
-        yield return new WaitForSeconds(0.15f);
+    private IEnumerator returnToNormal(float delay) {
+        yield return new WaitForSeconds(delay);
         timeSlow = false;
     }
 }

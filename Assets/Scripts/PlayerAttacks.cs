@@ -73,20 +73,6 @@ public class PlayerAttacks : MonoBehaviour {
 
         if (playerNumber == 0) {
             if (Input.GetAxis("Player1_Defend") > 0) {
-                /*
-                if (Input.GetAxis("Player1_Vertical") > 0) {
-                    targetSize = 1;
-                    targetOffset = 4;
-                }
-                else if (Input.GetAxis("Player1_Vertical") < 0) {
-                    targetSize = 1;
-                    targetOffset = -4;
-                }
-                else {
-                    targetSize = 1.5f;
-                    targetOffset = 0;
-                }
-                */
                 targetSize = 1.75f;
                 targetOffset = 1.5f * Input.GetAxis("Player1_Vertical");
             }
@@ -103,7 +89,7 @@ public class PlayerAttacks : MonoBehaviour {
                 if (GameState.IsGameOver) return;
 
                 if (Input.GetAxis("Player1_Shot") > 0 && cooldown == 0) {
-                    if (GameState.Player1Hp < 10) {
+                    if (GameState.Player1Hp < 20 || GameState.WinCounter <= -3) {
                         for (int i = -2; i <= 2; i++) {
 
                             float angle = 12 * i * Mathf.Deg2Rad;
@@ -138,14 +124,19 @@ public class PlayerAttacks : MonoBehaviour {
                         }
                     }
 
-                    cooldown += 1;
+                    if (GameState.WinCounter <= -3) {
+                        cooldown += 0.7f;
+                    }
+                    else {
+                        cooldown += 1;
+                    }
                 }
             }
 
             if (GameState.IsGameOver) return;
 
             if (Input.GetAxis("Player1_Special") > 0 && specialCooldown == 0) {
-                if (GameState.Player1Mp == 100) {
+                if (GameState.Player1Mp <= 100) {
                     SfxManager.PlaySfxPinkUltimate();
                     VolumeDecreaseUltimate.LastUltTime = Time.time;
                     DarkenBackgroundUltimate.LastUltTime = Time.time;
@@ -153,7 +144,7 @@ public class PlayerAttacks : MonoBehaviour {
 
                     StartCoroutine(player1Ultimate());
 
-                    GameState.Player1Mp -= 100;
+                    GameState.Player1Mp = 0;
                     specialCooldown += 8;
                 }
                 else if (GameState.Player1Mp >= 20) {
@@ -166,20 +157,7 @@ public class PlayerAttacks : MonoBehaviour {
             }
         }
         else {
-            if (Input.GetAxis("Player2_Defend") > 0 && cooldown == 0) {
-                /*
-                if (Input.GetAxis("Player2_Vertical") > 0) {
-                    targetSize = 1;
-                    targetOffset = 4f;
-                }
-                else if (Input.GetAxis("Player2_Vertical") < 0) {
-                    targetSize = 1;
-                    targetOffset = -4f;
-                }
-                else {
-                    targetSize = 1.5f;
-                    targetOffset = 0;
-                }*/
+            if (Input.GetAxis("Player2_Defend") > 0) {
                 targetSize = 1.75f;
                 targetOffset = 1.5f * Input.GetAxis("Player2_Vertical");
             }
@@ -198,7 +176,7 @@ public class PlayerAttacks : MonoBehaviour {
                 if (Input.GetAxis("Player2_Shot") > 0 && cooldown == 0) {
                     float speed = 7;
 
-                    if (GameState.Player2Hp < 10) {
+                    if (GameState.Player2Hp < 20 || GameState.WinCounter >= 3) {
                         for (int i = 1; i < 6; i++) {
                             for (int j = 0; j < i; j++) {
                                 float angle;
@@ -225,7 +203,12 @@ public class PlayerAttacks : MonoBehaviour {
                         }
                     }
 
-                    cooldown += 1;
+                    if (GameState.WinCounter >= 3) {
+                        cooldown += 0.7f;
+                    }
+                    else {
+                        cooldown += 1;
+                    }
                 }
             }
 
@@ -233,7 +216,7 @@ public class PlayerAttacks : MonoBehaviour {
 
             if (Input.GetAxis("Player2_Special") > 0 && specialCooldown == 0) {
 
-                if (GameState.Player2Mp == 100) {
+                if (GameState.Player2Mp <= 100) {
                     SfxManager.PlaySfxBlueUltimate();
                     VolumeDecreaseUltimate.LastUltTime = Time.time;
                     DarkenBackgroundUltimate.LastUltTime = Time.time;
@@ -262,42 +245,62 @@ public class PlayerAttacks : MonoBehaviour {
     }
 
     private IEnumerator player1Special() {
+        int amount = 10;
+        int radius = 2;
+        float delay = 0.4f;
+        float spacing = 0.3f;
 
-        for (int i = 0; i < 10; i++) {
-            
+        if (GameState.WinCounter <= -3) {
+            amount = 15;
+            radius = 3;
+            delay = 0.2667f;
+            spacing = 0.4f;
+        }
 
-            for (int j = -2; j <= 2; j++) {
-                PlayerBullet bullet = GameState.SpawnPlayerBullet(new Vector3(-9, GameState.Player1.transform.position.y + j * 0.3f, 0), playerNumber);
+        for (int i = 0; i < amount; i++) {
+            for (int j = -radius; j <= radius; j++) {
+                PlayerBullet bullet = GameState.SpawnPlayerBullet(new Vector3(-9, GameState.Player1.transform.position.y + j * spacing, 0), playerNumber);
                 bullet.velocity = new Vector3(15, 0, 0);
                 bullet.GetComponent<TrailRenderer>().enabled = true;
                 setBulletColor(bullet);
 
                 bullet.movement = new WormMovement(2, new Vector3(0.5f, 0, 0), new Vector3(15, 0, 0));
+
+                if (j == radius || j == -radius) {
+                    for (int k = 0; k < radius; k++) {
+                        bullet = GameState.SpawnPlayerBullet(new Vector3(-9, GameState.Player1.transform.position.y + j * spacing, 0), playerNumber);
+                        bullet.velocity = new Vector3(14 - k, 0, 0);
+                        bullet.GetComponent<TrailRenderer>().enabled = true;
+                        setBulletColor(bullet);
+
+                        bullet.movement = new WormMovement(2, new Vector3(0.5f, 0, 0), new Vector3(14 - 2*k, 0, 0));
+                    }
+                }
             }
-
-
-            yield return new WaitForSeconds(0.4f);
+            yield return new WaitForSeconds(delay);
         }
     }
 
     private IEnumerator player1Ultimate() {
         float toggle = 1;
 
-        StartCoroutine(bulletSlash(30, 0.2f, -8, -6, 8, 31, toggle *= -1));
+        int multiplier = GameState.WinCounter <= -3 ? 2 : 1;
+
+        StartCoroutine(bulletSlash(30 * multiplier, 0.2f, -8, -6, 8, 31, toggle *= -1));
         yield return new WaitForSeconds(2);
 
-        StartCoroutine(bulletSlash(30, 0.2f, -8, -4, 8, 31, toggle *= -1));
+        StartCoroutine(bulletSlash(30 * multiplier, 0.2f, -8, -4, 8, 31, toggle *= -1));
         yield return new WaitForSeconds(1);
-        StartCoroutine(bulletSlash(25, 0.2f, -8, -4, 8, 31, toggle *= -1));
+        StartCoroutine(bulletSlash(25 * multiplier, 0.2f, -8, -4, 8, 31, toggle *= -1));
         yield return new WaitForSeconds(1);
 
         for (int i = 0; i < 4; i++) {
-            StartCoroutine(bulletSlash(30, 0.2f, -8, -2, 8, 37, toggle *= -1));
+            StartCoroutine(bulletSlash(30 * multiplier, 0.2f, -8, -2, 8, 37, toggle *= -1));
             yield return new WaitForSeconds(0.4f);
         }
 
         for (int i = 0; i < 8; i++) {
-            StartCoroutine(bulletSlash(30, 0.1f, -8, 0, 8, 47, toggle *= -1));
+            StartCoroutine(bulletSlash(30 * multiplier, 0.1f, -8, 0, 8, 47, toggle *= -1));
             yield return new WaitForSeconds(0.2f);
         }
     }
@@ -307,10 +310,11 @@ public class PlayerAttacks : MonoBehaviour {
         Vector3 end = new Vector3(Random.Range(minX, maxX), -5 * startY, 0);
         Vector3 dPos = (end - start) / amount;
 
-        float angle = Random.Range(-Mathf.PI * 0.5f, Mathf.PI * 0.5f);
+        float angle = 0;// Random.Range(-Mathf.PI * 0.5f, Mathf.PI * 0.5f);
+        float angleChange = Mathf.Deg2Rad * (GameState.WinCounter <= -3 ? 2 : 1);
 
         for (int i = 0; i < amount; i++) {
-            
+
 
             PlayerBullet bullet = GameState.SpawnPlayerBullet(start + i * dPos, playerNumber);
 
@@ -321,12 +325,12 @@ public class PlayerAttacks : MonoBehaviour {
 
             if (i % 5 == 4) {
                 angle += spin * Mathf.Deg2Rad;
-                if (angle > Mathf.PI/2) {
+                if (angle > Mathf.PI / 2) {
                     angle -= Mathf.PI;
                 }
             }
             else {
-                angle += Mathf.Deg2Rad;
+                angle += angleChange;
             }
 
             yield return new WaitForSeconds(totalTime / amount);
@@ -350,14 +354,27 @@ public class PlayerAttacks : MonoBehaviour {
                 setBulletColor(bullet);
                 bullet.size = 2;
             }
-            else {
-                PlayerBullet bullet = GameState.SpawnPlayerBullet(new Vector3(9, y - 0.1f * i, 0), playerNumber);
+            if (GameState.WinCounter >= 3) {
+                PlayerBullet bullet = GameState.SpawnPlayerBullet(new Vector3(9, y + 1.5f - 0.1f * i, 0), playerNumber);
                 bullet.movement = new SinewaveMovement(1, Vector3.left * (5 + 0.1f * i), Vector3.up * 5);
+                bullet.GetComponent<TrailRenderer>().enabled = true;
                 setBulletColor(bullet);
 
 
-                bullet = GameState.SpawnPlayerBullet(new Vector3(9, y + 0.1f * i, 0), playerNumber);
+                bullet = GameState.SpawnPlayerBullet(new Vector3(9, y + 1.5f + 0.1f * i, 0), playerNumber);
                 bullet.movement = new SinewaveMovement(1, Vector3.left * (5 + 0.1f * i), Vector3.down * 5);
+                bullet.GetComponent<TrailRenderer>().enabled = true;
+                setBulletColor(bullet);
+
+                bullet = GameState.SpawnPlayerBullet(new Vector3(9, y - 1.5f - 0.1f * i, 0), playerNumber);
+                bullet.movement = new SinewaveMovement(1, Vector3.left * (5 + 0.1f * i), Vector3.up * 5);
+                bullet.GetComponent<TrailRenderer>().enabled = true;
+                setBulletColor(bullet);
+
+
+                bullet = GameState.SpawnPlayerBullet(new Vector3(9, y - 1.5f + 0.1f * i, 0), playerNumber);
+                bullet.movement = new SinewaveMovement(1, Vector3.left * (5 + 0.1f * i), Vector3.down * 5);
+                bullet.GetComponent<TrailRenderer>().enabled = true;
                 setBulletColor(bullet);
             }
 
@@ -367,21 +384,48 @@ public class PlayerAttacks : MonoBehaviour {
 
     private IEnumerator player2Ultimate(Vector3 position) {
         float angle = 0;
-        for (int i = 0; i < 64; i++) {
-            
 
-            for (int j = 0; j < 12; j++) {
-                float direction = (angle + j * 360/12f) * Mathf.Deg2Rad;
+        int amount = 64;
+        int circleAmount = 12;
+        float spin = 7;
+
+        if (GameState.WinCounter >= 3) {
+            amount = 128;
+            circleAmount = 19;
+            spin = 5;
+        }
+
+        for (int i = 0; i < amount; i++) {
+
+            for (int j = 0; j < circleAmount; j++) {
+                float direction = (angle + j * 360f / circleAmount) * Mathf.Deg2Rad;
                 Vector3 velocity = new Vector3(Mathf.Cos(direction), Mathf.Sin(direction), 0) * (2 + i * 0.01f);
 
                 PlayerBullet bullet = GameState.SpawnPlayerBullet(position, playerNumber);
                 bullet.velocity = velocity;
                 bullet.movement = new CurvedMovement(i % 2 == 0 ? 30 : -30, 1.5f, 10);
+                bullet.size = 1.25f;
                 bullet.GetComponent<TrailRenderer>().enabled = true;
                 setBulletColor(bullet);
             }
-            angle += 7;
-            yield return new WaitForSeconds(0.125f);
+            if (GameState.WinCounter >= 3) {
+                yield return new WaitForSeconds(0.05f);
+                for (int j = 0; j < circleAmount; j++) {
+                    float direction = (angle + j * 360f / circleAmount) * Mathf.Deg2Rad;
+                    Vector3 velocity = new Vector3(Mathf.Cos(direction), Mathf.Sin(direction), 0) * (2 + i * 0.01f);
+
+                    PlayerBullet bullet = GameState.SpawnPlayerBullet(position, playerNumber);
+                    bullet.velocity = velocity;
+                    bullet.movement = new CurvedMovement(i % 2 == 0 ? 30 : -30, 1.5f, 10);
+                    bullet.GetComponent<TrailRenderer>().enabled = true;
+                    setBulletColor(bullet);
+                }
+                yield return new WaitForSeconds(0.075f);
+            }
+            else {
+                yield return new WaitForSeconds(0.125f);
+            }
+            angle += spin;
         }
     }
 }

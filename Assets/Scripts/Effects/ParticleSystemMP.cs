@@ -18,11 +18,11 @@ public class ParticleSystemMP : MonoBehaviour {
     void Update() {
         if (player == 0) {
             emissionA.enabled = GameState.Player1Mp >= 20;
-            emissionB.enabled = GameState.Player1Mp >= 100;
+            emissionB.enabled = GameState.Player1Mp >= 200;
         }
         else if (player == 1) {
             emissionA.enabled = GameState.Player2Mp >= 20;
-            emissionB.enabled = GameState.Player2Mp >= 100;
+            emissionB.enabled = GameState.Player2Mp >= 200;
         }
     }
 }

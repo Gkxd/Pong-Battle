@@ -42,7 +42,7 @@ public class PlayerBullet : MonoBehaviour {
         trailRenderer.material.color = trailColor;
 
         transform.localScale = Vector3.forward;
-        trailRenderer.startWidth = 0;
+        //trailRenderer.startWidth = 0;
 
         material = transform.Find("Visual").GetComponent<Renderer>().material;
 
